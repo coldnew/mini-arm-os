@@ -16,8 +16,9 @@
  */
 #define USART_FLAG_RXNE ((uint16_t) 0x0020)
 
-#define CR 0x0d
-#define BS 0x08
+#define CR  0x0d
+#define BS  0x08
+#define DEL 0x7f
 
 void usart_init(void)
 {
@@ -64,7 +65,8 @@ int get_str(char *s)
 	char c;
 
 	while ((c = get_char()) != CR) {
-		if (c != BS) {
+		/* skip Backspace & Delete key */
+		if ((c != BS) && (c != DEL)) {
 			cnt++;
 			*s++ = c;
 			put_char(c);
@@ -73,9 +75,7 @@ int get_str(char *s)
 			if (cnt > 0) {
 				cnt--;
 				*s-- = ' ';
-				put_char('\b');
-				put_char(' ');
-				put_char('\b');
+				print_str("\b \b");
 			}
 		}
 	}
@@ -137,7 +137,7 @@ void findgcd_thread(void *userdata)
                 for(int j = i + 1 ;j < 9999 + 1; j++){
                         findgcd(i,j);
                 }
-		delay(1000);
+		delay(5000);
         }
 	print_str("End findgcd_thread....\n");
 }
