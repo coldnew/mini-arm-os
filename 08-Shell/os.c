@@ -172,6 +172,13 @@ void shell_thread(void *userdata)
 			if (thread_create(findgcd_thread, (void *) "findGCDv2") == -1)
 				print_str("findGCDv2 creation failed\r\n");
 		}
+		else {
+			if (buf[0] != 0) {
+				print_str("    ");
+				print_str(buf);
+				print_str(": command not found\n");
+			}
+		}
 	}
 }
 
