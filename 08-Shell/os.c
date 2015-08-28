@@ -92,22 +92,6 @@ int strcmp(char *s1, char *s2)
 	return (*(unsigned char *) s1) - (*(unsigned char *) s2);
 }
 
-
-static void delay(volatile int count)
-{
-	count *= 50000;
-	while (count--);
-}
-
-static void busy_loop(void *str)
-{
-	while (1) {
-		print_str(str);
-		print_str(": Running...\n");
-		delay(1000);
-	}
-}
-
 static int findGCD_v1(int a, int b) {
         while (1) {
                 if (a > b) a -= b;
@@ -137,7 +121,6 @@ void findgcd_thread(void *userdata)
 
 void shell_thread(void *userdata)
 {
-	// busy_loop(userdata);
 	char buf[64] = { '\0' };
 
 	while(1) {
@@ -162,16 +145,6 @@ void shell_thread(void *userdata)
 				print_str("findGCDv1 creation failed\r\n");
 		}
 	}
-}
-
-void test2(void *userdata)
-{
-	busy_loop(userdata);
-}
-
-void test3(void *userdata)
-{
-//	busy_loop(userdata);
 }
 
 /* 72MHz */
