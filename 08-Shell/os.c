@@ -152,14 +152,10 @@ void shell_thread(void *userdata)
 				);
 		}
 		else if (!strcmp(buf, "clear")) {
-			/* FIXME: dirty trick to clean screen */
-			print_str("\n\n\n\n\n\n\n\n\n\n"
-				  "\n\n\n\n\n\n\n\n\n\n"
-				  "\n\n\n\n\n\n\n\n\n\n"
-				  "\n\n\n\n\n\n\n\n\n\n"
-				  "\n\n\n\n\n\n\n\n\n\n"
-				  "\n\n\n\n\n\n\n\n\n\n"
-				  "\n\n\n\n\n\n\n\n\n\n");
+			put_char(27);
+			print_str("[2J");
+			put_char(27);
+			print_str("[H");
 		}
 		else if (!strcmp(buf, "findGCDv1")) {
 			if (thread_create(findgcd_thread, (void *) "findGCDv1") == -1)
