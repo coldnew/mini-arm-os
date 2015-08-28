@@ -9,6 +9,16 @@
  */
 #define USART_FLAG_TXE	((uint16_t) 0x0080)
 
+/* USART RXNE Flag
+ * This flag is cleared by a read to the USARTx_DR register and
+ * set when received data is ready to be read.
+ * This flag can also be cleared by writing a zero to it.
+ */
+#define USART_FLAG_RXNE ((uint16_t) 0x0020)
+
+#define CR 0x0d
+#define BS 0x08
+
 void usart_init(void)
 {
 	*(RCC_APB2ENR) |= (uint32_t) (0x00000001 | 0x00000004);
@@ -36,6 +46,53 @@ void print_str(const char *str)
 	}
 }
 
+void put_char(const char c)
+{
+        while (!(*(USART2_SR) & USART_FLAG_TXE));
+        *(USART2_DR) = c & 0xFF;
+}
+
+unsigned char get_char()
+{
+        while (!(*(USART2_SR) & USART_FLAG_RXNE));
+        return (unsigned char) (*(USART2_DR) & 0xFF);
+}
+
+int get_str(char *s)
+{
+	int cnt = 0;
+	char c;
+
+	while ((c = get_char()) != CR) {
+		if (c != BS) {
+			cnt++;
+			*s++ = c;
+			put_char(c);
+		}
+		else {
+			if (cnt > 0) {
+				cnt--;
+				*s-- = ' ';
+				put_char('\b');
+				put_char(' ');
+				put_char('\b');
+			}
+		}
+	}
+	*s = 0;
+	return cnt;
+}
+
+int strcmp(char *s1, char *s2)
+{
+	while (*s1 != '\0' && *s1 == *s2) {
+		s1++;
+		s2++;
+	}
+	return (*(unsigned char *) s1) - (*(unsigned char *) s2);
+}
+
+
 static void delay(volatile int count)
 {
 	count *= 50000;
@@ -51,9 +108,64 @@ static void busy_loop(void *str)
 	}
 }
 
-void test1(void *userdata)
+static int findGCD_v1(int a, int b) {
+        while (1) {
+                if (a > b) a -= b;
+                else if (a < b) b -= a;
+                else return a;
+        }
+}
+
+void findgcd_thread(void *userdata)
 {
-	busy_loop(userdata);
+	int (*findgcd)(int, int);
+
+	if (!strcmp(userdata, "findGCDv1"))
+		findgcd = &findGCD_v1;
+	else {
+		print_str("ERROR: wrong useage on findgcd_thread\n");
+		return;
+	}
+
+	for(int i = 2;i < 9999 + 1; i++){
+                for(int j = i + 1 ;j < 9999 + 1; j++){
+                        findgcd(i,j);
+                }
+		print_str("calculate findgcd\n");
+        }
+}
+
+void shell_thread(void *userdata)
+{
+	// busy_loop(userdata);
+	char buf[64] = { '\0' };
+
+	while(1) {
+		print_str("\n mini-arm-os $ ");
+		get_str(buf);
+		print_str("\n");
+		if (!strcmp(buf, "help")) {
+			print_str("Usage:\n"
+				  "  help      -- this document\n"
+				  "  clear     -- clear screen\n"
+				  "  findGCDv1 -- findGCD v1 \n"
+				);
+		}
+		else if (!strcmp(buf, "clear")) {
+			/* FIXME: dirty trick to clean screen */
+			print_str("\n\n\n\n\n\n\n\n\n\n"
+				  "\n\n\n\n\n\n\n\n\n\n"
+				  "\n\n\n\n\n\n\n\n\n\n"
+				  "\n\n\n\n\n\n\n\n\n\n"
+				  "\n\n\n\n\n\n\n\n\n\n"
+				  "\n\n\n\n\n\n\n\n\n\n"
+				  "\n\n\n\n\n\n\n\n\n\n");
+		}
+		else if (!strcmp(buf, "findGCDv1")) {
+			if (thread_create(findgcd_thread, (void *) "findGCDv1") == -1)
+				print_str("findGCDv1 creation failed\r\n");
+		}
+	}
 }
 
 void test2(void *userdata)
@@ -63,7 +175,7 @@ void test2(void *userdata)
 
 void test3(void *userdata)
 {
-	busy_loop(userdata);
+//	busy_loop(userdata);
 }
 
 /* 72MHz */
@@ -74,18 +186,10 @@ void test3(void *userdata)
 
 int main(void)
 {
-	const char *str1 = "Task1", *str2 = "Task2", *str3 = "Task3";
-
 	usart_init();
 
-	if (thread_create(test1, (void *) str1) == -1)
-		print_str("Thread 1 creation failed\r\n");
-
-	if (thread_create(test2, (void *) str2) == -1)
-		print_str("Thread 2 creation failed\r\n");
-
-	if (thread_create(test3, (void *) str3) == -1)
-		print_str("Thread 3 creation failed\r\n");
+	if (thread_create(shell_thread, (void *) "shell_thread") == -1)
+		print_str("shell thread creation failed\r\n");
 
 	/* SysTick configuration */
 	*SYSTICK_LOAD = (CPU_CLOCK_HZ / TICK_RATE_HZ) - 1UL;
