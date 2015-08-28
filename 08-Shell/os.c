@@ -147,7 +147,7 @@ void shell_thread(void *userdata)
 	char buf[64] = { '\0' };
 
 	while(1) {
-		print_str("\n mini-arm-os $ ");
+		print_str("mini-arm-os $ ");
 		get_str(buf);
 		print_str("\n");
 		if (!strcmp(buf, "help")) {
