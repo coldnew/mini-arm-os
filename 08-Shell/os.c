@@ -92,11 +92,30 @@ int strcmp(char *s1, char *s2)
 	return (*(unsigned char *) s1) - (*(unsigned char *) s2);
 }
 
+static void delay(volatile int count)
+{
+	count *= 50000;
+	while (count--);
+}
+
 static int findGCD_v1(int a, int b) {
+	print_str("running findGVD_v1\n");
         while (1) {
                 if (a > b) a -= b;
                 else if (a < b) b -= a;
                 else return a;
+        }
+}
+
+static int findGCD_v2(int a, int b) {
+	print_str("running findGVD_v2\n");
+        while (1) {
+                a %= b;
+                if (a == 0) return b;
+                if (a == 1) return 1;
+                b %= a;
+                if (b == 0) return a;
+                if (b == 1) return 1;
         }
 }
 
@@ -106,17 +125,21 @@ void findgcd_thread(void *userdata)
 
 	if (!strcmp(userdata, "findGCDv1"))
 		findgcd = &findGCD_v1;
+	else if (!strcmp(userdata, "findGCDv2"))
+		findgcd = &findGCD_v2;
 	else {
 		print_str("ERROR: wrong useage on findgcd_thread\n");
 		return;
 	}
 
+	print_str("Start findgcd_thread....\n");
 	for(int i = 2;i < 9999 + 1; i++){
                 for(int j = i + 1 ;j < 9999 + 1; j++){
                         findgcd(i,j);
                 }
-		print_str("calculate findgcd\n");
+		delay(1000);
         }
+	print_str("End findgcd_thread....\n");
 }
 
 void shell_thread(void *userdata)
@@ -132,6 +155,7 @@ void shell_thread(void *userdata)
 				  "  help      -- this document\n"
 				  "  clear     -- clear screen\n"
 				  "  findGCDv1 -- findGCD v1 \n"
+				  "  findGCDv2 -- findGCD v2 \n"
 				);
 		}
 		else if (!strcmp(buf, "clear")) {
@@ -143,6 +167,10 @@ void shell_thread(void *userdata)
 		else if (!strcmp(buf, "findGCDv1")) {
 			if (thread_create(findgcd_thread, (void *) "findGCDv1") == -1)
 				print_str("findGCDv1 creation failed\r\n");
+		}
+		else if (!strcmp(buf, "findGCDv2")) {
+			if (thread_create(findgcd_thread, (void *) "findGCDv2") == -1)
+				print_str("findGCDv2 creation failed\r\n");
 		}
 	}
 }
