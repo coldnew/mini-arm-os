@@ -145,7 +145,7 @@ void fib_thread(void *userdata)
 {
 	char buf[32];
 	while(1) {
-		for (int i = 2; i < 3; ++i) {
+		for (int i = 2; i < 47; ++i) {
 			itoa(fib(i), buf, 10);
 			print_str_lock("\nfibonacci seq :");
 			print_str_lock(buf);
