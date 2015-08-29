@@ -41,19 +41,18 @@ void usart_init(void)
 	*(USART2_CR1) |= 0x2000;
 }
 
-void print_str(const char *str)
-{
-	while (*str) {
-		while (!(*(USART2_SR) & USART_FLAG_TXE));
-		*(USART2_DR) = (*str & 0xFF);
-		str++;
-	}
-}
-
 void put_char(const char c)
 {
         while (!(*(USART2_SR) & USART_FLAG_TXE));
         *(USART2_DR) = c & 0xFF;
+}
+
+void print_str(const char *str)
+{
+	while (*str) {
+		put_char(*str);
+		str++;
+	}
 }
 
 unsigned char get_char()
