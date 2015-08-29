@@ -3,7 +3,7 @@
 #include "reg.h"
 #include "threads.h"
 
-/* use string function implement in toolchain */
+/* use some toolchain implement function */
 #include <string.h>
 #include <stdlib.h>
 
@@ -179,13 +179,10 @@ void findgcd_thread(void *userdata)
 void shell_thread(void *userdata)
 {
 	char buf[64] = { '\0' };
-	int cnt = 0;
-	char b1[32];
+
 	while(1) {
 		print_str("mini-arm-os $ ");
-		cnt = get_str(buf);
-		print_str("\n --> cnt: ");
-		print_str(itoa(cnt, b1, 10));
+		get_str(buf);
 		print_str("\n");
 		if (!strncmp(buf, "help", 4)) {
 			print_str("Usage:\n"
