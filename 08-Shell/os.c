@@ -5,6 +5,7 @@
 
 /* use string function implement in toolchain */
 #include <string.h>
+#include <stdlib.h>
 
 /* USART TXE Flag
  * This flag is cleared when data is written to USARTx_DR and
@@ -106,6 +107,24 @@ static int findGCD_v2(int a, int b) {
         }
 }
 
+static int fib(int n)
+{
+	if (0 == n) return 0;
+	if (1 == n) return 1;
+	return (fib(n - 1) + fib(n - 2));
+}
+
+void fib_thread(void *userdata)
+{
+	char buf[32];
+	for (int i = 2; i < 47; ++i) {
+		itoa(fib(i), buf, 10);
+		print_str("\nfibonacci seq :");
+		print_str(buf);
+		print_str("\n");
+	}
+}
+
 void findgcd_thread(void *userdata)
 {
 	int (*findgcd)(int, int);
@@ -185,6 +204,9 @@ int main(void)
 
 	if (thread_create(shell_thread, (void *) "shell_thread") == -1)
 		print_str("shell thread creation failed\r\n");
+
+	if (thread_create(fib_thread, (void *) "fib_thread") == -1)
+		print_str("fib thread creation failed\r\n");
 
 	/* SysTick configuration */
 	*SYSTICK_LOAD = (CPU_CLOCK_HZ / TICK_RATE_HZ) - 1UL;
