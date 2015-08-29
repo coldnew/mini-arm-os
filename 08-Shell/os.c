@@ -43,8 +43,8 @@ void usart_init(void)
 
 void put_char(const char c)
 {
-        while (!(*(USART2_SR) & USART_FLAG_TXE));
-        *(USART2_DR) = c & 0xFF;
+	while (!(*(USART2_SR) & USART_FLAG_TXE) && (*(USART2_SR) & USART_FLAG_RXNE));
+	*(USART2_DR) = c & 0xFF;
 }
 
 void print_str(const char *str)
@@ -57,8 +57,8 @@ void print_str(const char *str)
 
 unsigned char get_char()
 {
-        while (!(*(USART2_SR) & USART_FLAG_RXNE));
-        return (unsigned char) (*(USART2_DR) & 0xFF);
+	while ((*(USART2_SR) & USART_FLAG_TXE) && !(*(USART2_SR) & USART_FLAG_RXNE));
+	return  (unsigned char) (*(USART2_DR) & 0xFF);;
 }
 
 int get_str(char *s)
@@ -83,12 +83,6 @@ int get_str(char *s)
 	}
 	*s = 0;
 	return cnt;
-}
-
-static void delay(volatile int count)
-{
-	count *= 50000;
-	while (count--);
 }
 
 static int findGCD_v1(int a, int b) {
@@ -130,7 +124,6 @@ void findgcd_thread(void *userdata)
                 for(int j = i + 1 ;j < 9999 + 1; j++){
                         findgcd(i,j);
                 }
-		delay(5000);
         }
 	print_str("End findgcd_thread....\n");
 }
@@ -149,6 +142,7 @@ void shell_thread(void *userdata)
 				  "  clear     -- clear screen\n"
 				  "  findGCDv1 -- findGCD v1 \n"
 				  "  findGCDv2 -- findGCD v2 \n"
+				  "  t -- findGCD v2 \n"
 				);
 		}
 		else if (!strncmp(buf, "clear", 4)) {
@@ -162,6 +156,10 @@ void shell_thread(void *userdata)
 				print_str("findGCDv1 creation failed\r\n");
 		}
 		else if (!strncmp(buf, "findGCDv2", 9)) {
+			if (thread_create(findgcd_thread, (void *) "findGCDv2") == -1)
+				print_str("findGCDv2 creation failed\r\n");
+		}
+		else if (!strncmp(buf, "t", 1)) {
 			if (thread_create(findgcd_thread, (void *) "findGCDv2") == -1)
 				print_str("findGCDv2 creation failed\r\n");
 		}
