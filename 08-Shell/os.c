@@ -3,6 +3,9 @@
 #include "reg.h"
 #include "threads.h"
 
+/* use string function implement in toolchain */
+#include <string.h>
+
 /* USART TXE Flag
  * This flag is cleared when data is written to USARTx_DR and
  * set when that data is transferred to the TDR
@@ -83,15 +86,6 @@ int get_str(char *s)
 	return cnt;
 }
 
-int strcmp(char *s1, char *s2)
-{
-	while (*s1 != '\0' && *s1 == *s2) {
-		s1++;
-		s2++;
-	}
-	return (*(unsigned char *) s1) - (*(unsigned char *) s2);
-}
-
 static void delay(volatile int count)
 {
 	count *= 50000;
@@ -123,9 +117,9 @@ void findgcd_thread(void *userdata)
 {
 	int (*findgcd)(int, int);
 
-	if (!strcmp(userdata, "findGCDv1"))
+	if (!strncmp(userdata, "findGCDv1", 9))
 		findgcd = &findGCD_v1;
-	else if (!strcmp(userdata, "findGCDv2"))
+	else if (!strncmp(userdata, "findGCDv2", 9))
 		findgcd = &findGCD_v2;
 	else {
 		print_str("ERROR: wrong useage on findgcd_thread\n");
@@ -150,7 +144,7 @@ void shell_thread(void *userdata)
 		print_str("mini-arm-os $ ");
 		get_str(buf);
 		print_str("\n");
-		if (!strcmp(buf, "help")) {
+		if (!strncmp(buf, "help", 4)) {
 			print_str("Usage:\n"
 				  "  help      -- this document\n"
 				  "  clear     -- clear screen\n"
@@ -158,17 +152,17 @@ void shell_thread(void *userdata)
 				  "  findGCDv2 -- findGCD v2 \n"
 				);
 		}
-		else if (!strcmp(buf, "clear")) {
+		else if (!strncmp(buf, "clear", 4)) {
 			put_char(27);
 			print_str("[2J");
 			put_char(27);
 			print_str("[H");
 		}
-		else if (!strcmp(buf, "findGCDv1")) {
+		else if (!strncmp(buf, "findGCDv1", 9)) {
 			if (thread_create(findgcd_thread, (void *) "findGCDv1") == -1)
 				print_str("findGCDv1 creation failed\r\n");
 		}
-		else if (!strcmp(buf, "findGCDv2")) {
+		else if (!strncmp(buf, "findGCDv2", 9)) {
 			if (thread_create(findgcd_thread, (void *) "findGCDv2") == -1)
 				print_str("findGCDv2 creation failed\r\n");
 		}
