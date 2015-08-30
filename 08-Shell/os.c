@@ -144,7 +144,7 @@ static int fib(int n)
 
 void cmd_fib(void *userdata)
 {
-	char buf[2];
+	char buf[40];
 	print_str("fib(");
 	print_str(userdata);
 	print_str(") = ");
