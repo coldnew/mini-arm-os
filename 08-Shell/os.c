@@ -27,12 +27,6 @@
 /* Implement simple mutex for serial readl/write */
 unsigned char __usart2_lock = 0;
 
-static void delay(volatile int count)
-{
-	count *= 50000;
-	while (count--);
-}
-
 void usart2_trylock()
 {
 	__usart2_lock = 1;
@@ -40,9 +34,7 @@ void usart2_trylock()
 
 void usart2_lock()
 {
-	while(1 == __usart2_lock) {
-		delay(10000);  // prevent steal all resource
-	}
+	while(1 == __usart2_lock);
 }
 
 void usart2_unlock()
