@@ -146,7 +146,7 @@ static int fib(int n)
 
 void cmd_fib(void *userdata)
 {
-	char buf[40];
+	char buf[10];
 	print_str("fib(");
 	print_str(userdata);
 	print_str(") = ");
@@ -196,6 +196,7 @@ void shell_thread(void *userdata)
 				);
 		}
 		else if (!strcmp(shell_args[0], "clear")) {
+			/* see: http://www.termsys.demon.co.uk/vtansi.htm */
 			put_char(27);
 			print_str("[2J");
 			put_char(27);
@@ -207,8 +208,8 @@ void shell_thread(void *userdata)
 		}
 		else if (!strcmp(shell_args[0], "fib")) {
 			int val = atoi(shell_args[1]);
-			if ((val < 0) || (val > 47)) {
-				print_str("ERROR: val should in 0 ~ 47\n");
+			if ((val < 0) || (val > 32)) {
+				print_str("ERROR: val should in 0 ~ 32\n");
 				continue;
 			}
 			// detect if we need run fib in thread
