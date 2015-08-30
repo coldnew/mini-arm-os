@@ -185,7 +185,7 @@ void shell_thread(void *userdata)
 				print_str("ERROR: val should in 0 ~ 32\n");
 				continue;
 			}
-			// detect if we need run fib in thread
+			// detect if we need run in thread
 			if (!strcmp(shell_args[2], "&")) {
 				print_str("try to start fib thread....\n");
 				if (thread_create(cmd_fib, (void *) shell_args[1]) == -1)
@@ -196,7 +196,7 @@ void shell_thread(void *userdata)
 			}
 		}
 		else if (!strcmp(shell_args[0], "gcd")) {
-			// detect if we need run fib in thread
+			// detect if we need run in thread
 			if (!strcmp(shell_args[3], "&")) {
 				print_str("try to start gcd thread....\n");
 				if (thread_create(cmd_gcd, (void *) buf) == -1)
