@@ -18,9 +18,7 @@ unsigned char get_char()
 
 void echo ()
 {
-        while(1) {
-                put_char(get_char());
-        }
+        put_char(get_char());
 }
 
 void main(void)
