@@ -25,24 +25,6 @@
 #define BS  0x08
 #define DEL 0x7f
 
-/* Implement simple mutex for serial readl/write */
-unsigned char __usart2_lock = 0;
-
-void usart2_trylock()
-{
-	__usart2_lock = 1;
-}
-
-void usart2_lock()
-{
-	while(1 == __usart2_lock);
-}
-
-void usart2_unlock()
-{
-	__usart2_lock = 0;
-}
-
 void usart_init(void)
 {
 	*(RCC_APB2ENR) |= (uint32_t) (0x00000001 | 0x00000004);
@@ -75,12 +57,6 @@ void print_str(const char *str)
 	}
 }
 
-void print_str_lock(const char *str)
-{
-	usart2_lock();
-	print_str(str);
-}
-
 unsigned char get_char()
 {
 	while (!(*(USART2_SR) & USART_FLAG_RXNE));
@@ -93,8 +69,6 @@ int get_str(char *s)
 	char c;
 
 	while ((c = get_char()) != CR) {
-		/* lock resource */
-		usart2_trylock();
 		/* skip Backspace & Delete key */
 		if ((c != BS) && (c != DEL)) {
 			cnt++;
@@ -110,7 +84,6 @@ int get_str(char *s)
 		}
 	}
 	*s = 0;
-	usart2_unlock();
 	return cnt;
 }
 
