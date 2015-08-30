@@ -134,7 +134,7 @@ void cmd_gcd(void *userdata)
 	// FIXME: this method is really dangerous...
 	shell_arg_parser(userdata, strlen(userdata), shell_args);
 
-	print_str("cd(");
+	print_str("gcd(");
 	print_str(shell_args[1]);
 	print_str(", ");
 	print_str(shell_args[2]);
