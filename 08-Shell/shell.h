@@ -9,6 +9,4 @@ extern char shell_args[SHELL_MAX_ARGS][SHELL_MAX_ARG_LEN];
 
 int shell_arg_parser(char *cmd_line, int len, char (*args)[SHELL_MAX_ARG_LEN]);
 
-int shell_parse_cmds(char *cmdline);
-
 #endif /* __SHELL_H__ */

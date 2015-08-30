@@ -31,11 +31,3 @@ int shell_arg_parser(char *cmd_line, int len, char (*args)[SHELL_MAX_ARG_LEN])
 
         return argc;
 }
-
-int shell_parse_cmds(char *cmdline)
-{
-        // parse
-//        shell_arg_parser(cmdline, strlen(cmdline), shell_args);
-
-        return 0;
-}
