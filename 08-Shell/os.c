@@ -114,24 +114,26 @@ int get_str(char *s)
 	return cnt;
 }
 
-static int findGCD_v1(int a, int b) {
-	print_str("running findGVD_v1\n");
+static int findGCD_v3(int a, int b) {
         while (1) {
-                if (a > b) a -= b;
-                else if (a < b) b -= a;
-                else return a;
-        }
-}
-
-static int findGCD_v2(int a, int b) {
-	print_str("running findGVD_v2\n");
-        while (1) {
-                a %= b;
-                if (a == 0) return b;
-                if (a == 1) return 1;
-                b %= a;
-                if (b == 0) return a;
-                if (b == 1) return 1;
+                if (a > (b * 4)) {
+                        a %= b;
+                        if (a == 0) return b;
+                        if (a == 1) return 1;
+                } else if (a >= b) {
+                        a -= b;
+                        if (a == 0) return b;
+                        if (a == 1) return 1;
+                }
+                if (b > (a * 4)) {
+                        b %= a;
+                        if (b == 0) return a;
+                        if (b == 1) return 1;
+                } else if (b >= a) {
+                        b -= a;
+                        if (b == 0) return a;
+                        if (b == 1) return 1;
+                }
         }
 }
 
@@ -153,26 +155,23 @@ void cmd_fib(void *userdata)
 	print_str("\n");
 }
 
-void findgcd_thread(void *userdata)
+void cmd_gcd(void *userdata)
 {
-	int (*findgcd)(int, int);
+	// reuse shell parser since I am lazy :)
+	// FIXME: this method is really dangerous...
+	shell_arg_parser(userdata, strlen(userdata), shell_args);
 
-	if (!strncmp(userdata, "findGCDv1", 9))
-		findgcd = &findGCD_v1;
-	else if (!strncmp(userdata, "findGCDv2", 9))
-		findgcd = &findGCD_v2;
-	else {
-		print_str("ERROR: wrong useage on findgcd_thread\n");
-		return;
-	}
+	print_str("cd(");
+	print_str(shell_args[1]);
+	print_str(", ");
+	print_str(shell_args[2]);
+	print_str(") = ");
 
-	print_str("Start findgcd_thread....\n");
-	for(int i = 2;i < 9999 + 1; i++){
-                for(int j = i + 1 ;j < 9999 + 1; j++){
-                        findgcd(i,j);
-                }
-        }
-	print_str("End findgcd_thread....\n");
+	char buf [20];
+	int a = atoi(shell_args[1]);
+	int b = atoi(shell_args[2]);
+	print_str(itoa(findGCD_v3(a, b), buf, 10));
+	print_str("\n");
 }
 
 void shell_thread(void *userdata)
@@ -189,10 +188,11 @@ void shell_thread(void *userdata)
 
 		if (!strcmp(shell_args[0], "help")) {
 			print_str("Usage:\n"
-				  "  help       -- this document\n"
-				  "  clear      -- clear screen\n"
-				  "  echo <val> -- echo val\n"
-				  "  fib <val>  -- calculate fib \n"
+				  "  help          -- this document\n"
+				  "  clear         -- clear screen\n"
+				  "  echo <val>    -- echo val\n"
+				  "  fib  <val>    -- calculate fib(val) \n"
+				  "  gcd  <a> <b>  -- calculate gcd(a, b) \n"
 				);
 		}
 		else if (!strcmp(shell_args[0], "clear")) {
@@ -213,11 +213,23 @@ void shell_thread(void *userdata)
 			}
 			// detect if we need run fib in thread
 			if (!strcmp(shell_args[2], "&")) {
+				print_str("try to start fib thread....\n");
 				if (thread_create(cmd_fib, (void *) shell_args[1]) == -1)
 					print_str("shell thread creation failed\r\n");				
 			}
 			else {
 				cmd_fib(shell_args[1]);
+			}
+		}
+		else if (!strcmp(shell_args[0], "gcd")) {
+			// detect if we need run fib in thread
+			if (!strcmp(shell_args[3], "&")) {
+				print_str("try to start gcd thread....\n");
+				if (thread_create(cmd_gcd, (void *) buf) == -1)
+					print_str("shell thread creation failed\r\n");				
+			}
+			else {
+				cmd_gcd(buf);
 			}
 		}
 		else {
