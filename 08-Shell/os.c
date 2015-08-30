@@ -2,9 +2,10 @@
 #include <stdint.h>
 #include "reg.h"
 #include "threads.h"
+#include "string.h"
+#include "shell.h"
 
 /* use some toolchain implement function */
-#include <string.h>
 #include <stdlib.h>
 
 /* USART TXE Flag
@@ -141,17 +142,15 @@ static int fib(int n)
 	return (fib(n - 1) + fib(n - 2));
 }
 
-void fib_thread(void *userdata)
+void cmd_fib(void *userdata)
 {
-	char buf[32];
-	while(1) {
-		for (int i = 2; i < 47; ++i) {
-			itoa(fib(i), buf, 10);
-			print_str_lock("\nfibonacci seq :");
-			print_str_lock(buf);
-			print_str_lock("\n");
-		}
-	}
+	char buf[2];
+	print_str("fib(");
+	print_str(userdata);
+	print_str(") = ");
+	itoa(fib(atoi(userdata)), buf, 10);
+	print_str(buf);
+	print_str("\n");
 }
 
 void findgcd_thread(void *userdata)
@@ -184,27 +183,42 @@ void shell_thread(void *userdata)
 		print_str("mini-arm-os $ ");
 		get_str(buf);
 		print_str("\n");
-		if (!strncmp(buf, "help", 4)) {
+		int argc = shell_arg_parser(buf, strlen(buf), shell_args);
+
+		if (0 == argc) continue;
+
+		if (!strcmp(shell_args[0], "help")) {
 			print_str("Usage:\n"
-				  "  help      -- this document\n"
-				  "  clear     -- clear screen\n"
-				  "  findGCDv1 -- findGCD v1 \n"
-				  "  findGCDv2 -- findGCD v2 \n"
+				  "  help       -- this document\n"
+				  "  clear      -- clear screen\n"
+				  "  echo <val> -- echo val\n"
+				  "  fib <val>  -- calculate fib \n"
 				);
 		}
-		else if (!strncmp(buf, "clear", 4)) {
+		else if (!strcmp(shell_args[0], "clear")) {
 			put_char(27);
 			print_str("[2J");
 			put_char(27);
 			print_str("[H");
 		}
-		else if (!strncmp(buf, "findGCDv1", 9)) {
-			if (thread_create(findgcd_thread, (void *) "findGCDv1") == -1)
-				print_str("findGCDv1 creation failed\r\n");
+		else if (!strcmp(shell_args[0], "echo")) {
+			print_str(shell_args[1]);
+			put_char('\n');
 		}
-		else if (!strncmp(buf, "findGCDv2", 9)) {
-			if (thread_create(findgcd_thread, (void *) "findGCDv2") == -1)
-				print_str("findGCDv2 creation failed\r\n");
+		else if (!strcmp(shell_args[0], "fib")) {
+			int val = atoi(shell_args[1]);
+			if ((val < 0) || (val > 47)) {
+				print_str("ERROR: val should in 0 ~ 47\n");
+				continue;
+			}
+			// detect if we need run fib in thread
+			if (!strcmp(shell_args[2], "&")) {
+				if (thread_create(cmd_fib, (void *) shell_args[1]) == -1)
+					print_str("shell thread creation failed\r\n");				
+			}
+			else {
+				cmd_fib(shell_args[1]);
+			}
 		}
 		else {
 			if (buf[0] != 0) {
@@ -228,9 +242,6 @@ int main(void)
 
 	if (thread_create(shell_thread, (void *) "shell_thread") == -1)
 		print_str("shell thread creation failed\r\n");
-
-	if (thread_create(fib_thread, (void *) "fib_thread") == -1)
-		print_str("fib thread creation failed\r\n");
 
 	/* SysTick configuration */
 	*SYSTICK_LOAD = (CPU_CLOCK_HZ / TICK_RATE_HZ) - 1UL;
